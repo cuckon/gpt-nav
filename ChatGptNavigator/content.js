@@ -13,6 +13,9 @@ const observeDOM = () => {
   // Set up the observer to watch for new messages
   const observer = new MutationObserver(handleDOMChanges);
   observer.observe(chatContainer, { childList: true, subtree: true });
+  
+  // Add window resize handler to adjust panel layout if needed
+  window.addEventListener('resize', adjustPanelOnResize);
 };
 
 // Create the navigation panel
@@ -39,18 +42,26 @@ const createNavigationPanel = () => {
   navLinks.id = 'gpt-navigator-links';
   navPanel.appendChild(navLinks);
   
-  // Add toggle button
+  // Create toggle button as a separate element
   const toggleButton = document.createElement('button');
+  toggleButton.id = 'gpt-navigator-toggle';
   toggleButton.className = 'gpt-navigator-toggle';
   toggleButton.innerHTML = '&laquo;';
   toggleButton.addEventListener('click', () => {
     navPanel.classList.toggle('collapsed');
     toggleButton.innerHTML = navPanel.classList.contains('collapsed') ? '&raquo;' : '&laquo;';
+    // Adjust toggle button position when panel state changes
+    adjustPanelOnResize();
   });
-  navPanel.appendChild(toggleButton);
   
   // Add the panel to the body
   document.body.appendChild(navPanel);
+  
+  // Add toggle button separately to ensure it's not affected by panel styles
+  document.body.appendChild(toggleButton);
+  
+  // Adjust initial position
+  setTimeout(adjustPanelOnResize, 0);
   
   // Now scan existing content
   scanExistingPrompts();
@@ -310,6 +321,31 @@ const findMessageGroup = (element) => {
   }
   
   return element;
+};
+
+// Adjust panel position and size when window resizes
+const adjustPanelOnResize = () => {
+  const navPanel = document.getElementById('gpt-navigator-panel');
+  const toggleButton = document.getElementById('gpt-navigator-toggle');
+  
+  if (!navPanel || !toggleButton) return;
+  
+  // Check if panel is collapsed
+  const isCollapsed = navPanel.classList.contains('collapsed');
+  
+  // Update toggle button position
+  if (isCollapsed) {
+    toggleButton.style.right = '0';
+  } else {
+    // Adjust for different screen sizes
+    if (window.innerWidth <= 640) {
+      toggleButton.style.right = '220px';
+    } else if (window.innerWidth <= 1024) {
+      toggleButton.style.right = '240px';
+    } else {
+      toggleButton.style.right = '280px';
+    }
+  }
 };
 
 // Start observing DOM
