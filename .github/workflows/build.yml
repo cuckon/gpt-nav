@@ -27,11 +27,12 @@ jobs:
       
       - name: Copy extension files
         run: |
-          cp manifest.json build/
-          cp content.js build/
-          cp styles.css build/
-          cp -r images build/
-          cp LICENSE build/
+          cp ChatGptNavigator/manifest.json build/
+          cp ChatGptNavigator/content.js build/
+          cp ChatGptNavigator/styles.css build/
+          cp -r ChatGptNavigator/images build/ || echo "No images directory found"
+          cp ChatGptNavigator/LICENSE build/ || echo "No LICENSE file found"
+          cp LICENSE build/ || echo "No root LICENSE file found"
       
       - name: Create ZIP archive
         run: |
