@@ -99,6 +99,9 @@ html.light .gpt-navigator-number {
   font-style: italic;
   opacity: 0.8;
   color: #a1a1a1;
+  white-space: nowrap;
+  display: inline-block;
+  margin: 0 2px;
 }
 
 /* Light theme support for code marker */

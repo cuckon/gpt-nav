@@ -92,17 +92,6 @@ const scanExistingPrompts = () => {
       const userInput = extractUserInput(messageElement);
       
       if (userInput && userInput.trim()) {
-        // Create a trimmed version for the link text
-        // Handle HTML content in the input by first creating a temp element
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = userInput;
-        
-        // Extract and format the text
-        const rawText = tempDiv.textContent || '';
-        const shortText = rawText.length > 60  // Increased length to show more text 
-          ? rawText.substring(0, 57) + '...' 
-          : rawText;
-        
         // Create link element with styled index number
         const linkElement = document.createElement('a');
         linkElement.className = 'gpt-navigator-link';
@@ -112,15 +101,31 @@ const scanExistingPrompts = () => {
         numberBadge.className = 'gpt-navigator-number';
         numberBadge.textContent = (index + 1).toString();
         
-        // Create text content element - using innerHTML to preserve styling
+        // Create text content element - using innerHTML to preserve styling and original order
         const textSpan = document.createElement('span');
         textSpan.className = 'gpt-navigator-text';
         
-        // Apply styling to code indicator if present
-        let formattedText = userInput;
-        if (formattedText.includes('<i>[..code..]</i>')) {
-          textSpan.innerHTML = formattedText;
+        // If HTML content is present, handle it properly
+        if (userInput.includes('<i>')) {
+          // Get pure text for length check (without HTML tags)
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = userInput;
+          const rawText = tempDiv.textContent || '';
+          
+          // Truncate if needed, but preserve HTML tags
+          if (rawText.length > 60) {
+            // More complex truncation that preserves HTML
+            const displayText = smartTruncateHTML(userInput, 60);
+            textSpan.innerHTML = displayText;
+          } else {
+            // Use as is if short enough
+            textSpan.innerHTML = userInput;
+          }
         } else {
+          // Simple text truncation for plain text
+          const shortText = userInput.length > 60
+            ? userInput.substring(0, 57) + '...'
+            : userInput;
           textSpan.textContent = shortText;
         }
         
@@ -164,6 +169,53 @@ const scanExistingPrompts = () => {
   }
 };
 
+// Helper function to intelligently truncate HTML content while preserving HTML tags
+const smartTruncateHTML = (htmlString, maxLength) => {
+  // Create a temporary div to work with the HTML
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = htmlString;
+  
+  // Get all text nodes in the div
+  const textNodes = [];
+  const getTextNodes = (node) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      textNodes.push(node);
+    } else {
+      node.childNodes.forEach(child => getTextNodes(child));
+    }
+  };
+  getTextNodes(tempDiv);
+  
+  // Calculate total text length
+  let totalLength = 0;
+  textNodes.forEach(node => {
+    totalLength += node.textContent.length;
+  });
+  
+  // If content is short enough, return it as is
+  if (totalLength <= maxLength) {
+    return htmlString;
+  }
+  
+  // Track how many characters we can keep
+  let remainingChars = maxLength - 3; // Reserve space for ellipsis
+  let reachedLimit = false;
+  
+  // Modify text nodes to fit within the limit
+  textNodes.forEach(node => {
+    if (reachedLimit) {
+      node.textContent = '';
+    } else if (node.textContent.length <= remainingChars) {
+      remainingChars -= node.textContent.length;
+    } else {
+      node.textContent = node.textContent.substring(0, remainingChars) + '...';
+      reachedLimit = true;
+    }
+  });
+  
+  return tempDiv.innerHTML;
+};
+
 // Extract the user's input text using various methods
 const extractUserInput = (userElement) => {
   try {
@@ -181,10 +233,8 @@ const extractUserInput = (userElement) => {
       
       // Check if the full text contains code blocks
       if (fullText.includes('```')) {
-        // Extract non-code parts for better context
-        const textParts = fullText.split(/```[\s\S]*?```/);
-        // Join the non-code parts and add code marker
-        userInput = textParts.filter(Boolean).join(' ') + ' <i>[..code..]</i>';
+        // Replace code blocks with marker while maintaining original text order
+        userInput = fullText.replace(/```[\s\S]*?```/g, '<i>[..code..]</i>');
       } else {
         userInput = fullText;
       }
@@ -201,20 +251,19 @@ const extractUserInput = (userElement) => {
       // Extract code blocks
       const codeTexts = Array.from(codeBlocks).map(el => el.textContent?.trim() || '');
       
-      // Replace each code block with marker in the text
+      // Replace each code block with marker while maintaining original text order
       let resultText = directText;
       codeTexts.forEach(codeText => {
         if (codeText && resultText.includes(codeText)) {
-          resultText = resultText.replace(codeText, '');
+          resultText = resultText.replace(codeText, '<i>[..code..]</i>');
         }
       });
       
-      // Clean up whitespace and add code marker
+      // Clean up whitespace
       resultText = resultText.replace(/\s+/g, ' ').trim();
       
-      // Add code marker in a way that it can be styled
       if (resultText) {
-        return resultText + ' <i>[..code..]</i>';
+        return resultText;
       } else {
         return '<i>[..code..]</i>';
       }
@@ -226,15 +275,9 @@ const extractUserInput = (userElement) => {
     
     // Check for code blocks in the direct text content
     if (directText.includes('```')) {
-      // Extract content before, between and after code blocks
-      const textParts = directText.split(/```[\s\S]*?```/);
-      const nonCodeText = textParts.filter(Boolean).join(' ').trim();
-      
-      if (nonCodeText) {
-        return nonCodeText + ' <i>[..code..]</i>';
-      } else {
-        return '<i>[..code..]</i>';
-      }
+      // Replace code blocks with marker while maintaining original text order
+      directText = directText.replace(/```[\s\S]*?```/g, '<i>[..code..]</i>');
+      return directText;
     }
     
     if (directText) {
