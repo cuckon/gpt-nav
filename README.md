@@ -2,6 +2,8 @@
 
 A browser extension that adds a navigation panel to ChatGPT, showing links to all your prompts in the conversation.
 
+![screenshot](./images/nav-ui.png)
+
 ## Features
 
 - 📋 Automatically indexes all user prompts in the current ChatGPT conversation
