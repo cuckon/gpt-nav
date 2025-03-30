@@ -65,6 +65,13 @@ const handleDOMChanges = (mutations) => {
   }
 };
 
+// Debug function to log extracted content
+const debugLog = (message, data) => {
+  if (false) { // Logging disabled in production
+    console.log(`[GPT Navigator] ${message}`, data);
+  }
+};
+
 // Scan existing prompts and add to navigation
 const scanExistingPrompts = () => {
   const navLinks = document.getElementById('gpt-navigator-links');
@@ -73,91 +80,126 @@ const scanExistingPrompts = () => {
   // Clear existing links
   navLinks.innerHTML = '';
   
-  // Find all user prompts - updated selectors for the new ChatGPT structure
-  // Look for all elements with data-message-author-role="user"
-  const userMessages = document.querySelectorAll('[data-message-author-role="user"]');
-  
-  userMessages.forEach((messageElement, index) => {
-    // Get the text content of the message
-    // Looking for markdown content inside the message
-    const markdownElement = findClosestMarkdown(messageElement);
-    const messageContent = markdownElement ? markdownElement.textContent || '' : '';
+  try {
+    // Get all conversation turns - each turn has a user message and an assistant response
+    const conversationElements = document.querySelectorAll('div.w-full');
     
-    // Create a trimmed version for the link text
-    const shortText = messageContent.length > 40 
-      ? messageContent.substring(0, 37) + '...' 
-      : messageContent;
-    
-    // Create link element
-    const linkElement = document.createElement('a');
-    linkElement.className = 'gpt-navigator-link';
-    linkElement.textContent = `${index + 1}. ${shortText}`;
-    linkElement.href = '#';
-    linkElement.setAttribute('data-message-index', index);
-    
-    // Add click event to scroll to the message
-    linkElement.addEventListener('click', (e) => {
-      e.preventDefault();
-      // Find the closest parent div that contains the entire message group
-      const messageGroup = findMessageGroup(messageElement);
-      if (messageGroup) {
-        messageGroup.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        
-        // Add highlight effect
-        messageGroup.classList.add('gpt-navigator-highlight');
-        setTimeout(() => {
-          messageGroup.classList.remove('gpt-navigator-highlight');
-        }, 2000);
-      } else {
-        // Fallback to original element if group not found
-        messageElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        messageElement.classList.add('gpt-navigator-highlight');
-        setTimeout(() => {
-          messageElement.classList.remove('gpt-navigator-highlight');
-        }, 2000);
-      }
+    // Filter to find only user message elements
+    const userMessages = Array.from(conversationElements).filter(el => {
+      return el.querySelector('[data-message-author-role="user"]') !== null;
     });
     
-    navLinks.appendChild(linkElement);
-  });
-};
-
-// Helper function to find the closest markdown element
-const findClosestMarkdown = (element) => {
-  // Look for markdown element within the message element or its ancestors
-  const markdown = element.querySelector('.markdown');
-  if (markdown) return markdown;
-  
-  // If not found, look in parent containers
-  let parent = element.parentElement;
-  while (parent) {
-    const markdown = parent.querySelector('.markdown');
-    if (markdown) return markdown;
-    parent = parent.parentElement;
-  }
-  
-  return null;
-};
-
-// Helper function to find the message group container
-const findMessageGroup = (element) => {
-  // First try to find the direct parent with a specific class
-  let parent = element;
-  
-  // Go up to 5 levels to find a suitable container
-  for (let i = 0; i < 5; i++) {
-    parent = parent.parentElement;
-    if (!parent) break;
+    debugLog('Found user messages:', userMessages.length);
     
-    // Look for common container classes in the new ChatGPT interface
-    if (parent.classList.contains('w-full') && 
-        (parent.classList.contains('text-token-text-primary') || 
-         parent.classList.contains('text-base'))) {
-      return parent;
-    }
+    userMessages.forEach((messageGroup, index) => {
+      // Get the user's message
+      const userElement = messageGroup.querySelector('[data-message-author-role="user"]');
+      if (!userElement) return;
+      
+      // Extract the user's text input
+      const userInput = extractUserInput(userElement, messageGroup);
+      
+      if (userInput && userInput.trim()) {
+        // Create a trimmed version for the link text
+        const shortText = userInput.length > 40 
+          ? userInput.substring(0, 37) + '...' 
+          : userInput;
+        
+        // Create link element
+        const linkElement = document.createElement('a');
+        linkElement.className = 'gpt-navigator-link';
+        linkElement.textContent = `${index + 1}. ${shortText}`;
+        linkElement.href = '#';
+        linkElement.setAttribute('data-message-index', index);
+        
+        // Add click event to scroll to the message
+        linkElement.addEventListener('click', (e) => {
+          e.preventDefault();
+          messageGroup.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          
+          // Add highlight effect
+          messageGroup.classList.add('gpt-navigator-highlight');
+          setTimeout(() => {
+            messageGroup.classList.remove('gpt-navigator-highlight');
+          }, 2000);
+        });
+        
+        navLinks.appendChild(linkElement);
+      }
+    });
+  } catch (error) {
+    console.error('[GPT Navigator] Error scanning prompts:', error);
   }
-  
-  return element;
+};
+
+// Extract the user's input text using various methods
+const extractUserInput = (userElement, container) => {
+  try {
+    let userInput = '';
+    
+    // Try multiple strategies to get the user's input text
+    
+    // Strategy 1: Extract text from paragraphs within user message
+    // This typically gets the direct user input
+    const paragraphs = userElement.querySelectorAll('p');
+    if (paragraphs.length > 0) {
+      userInput = Array.from(paragraphs)
+        .map(p => p.textContent?.trim())
+        .filter(Boolean)
+        .join(' ');
+      
+      if (userInput) return userInput;
+    }
+    
+    // Strategy 2: Look for code blocks which may contain user code
+    const codeBlocks = userElement.querySelectorAll('pre code');
+    if (codeBlocks.length > 0) {
+      const codeText = Array.from(codeBlocks)
+        .map(code => code.textContent?.trim())
+        .filter(Boolean)
+        .join('\n');
+      
+      if (codeText) {
+        // Combine with previous text if available
+        userInput = userInput ? `${userInput} ${codeText}` : codeText;
+        return userInput;
+      }
+    }
+    
+    // Strategy 3: Find the text directly in the user element
+    // Useful for simple messages without formatting
+    const directText = userElement.textContent?.trim();
+    if (directText) {
+      return directText;
+    }
+    
+    // Strategy 4: Check nearby elements
+    if (container) {
+      // Find the containing message div - sometimes text is in a different element
+      const textElements = container.querySelectorAll('.text-message, .whitespace-pre-wrap');
+      
+      if (textElements.length > 0) {
+        const textFromContainer = Array.from(textElements)
+          // Only include elements that are part of the user message, not AI response
+          .filter(el => {
+            const parent = el.closest('[data-message-author-role]');
+            return parent && parent.getAttribute('data-message-author-role') === 'user';
+          })
+          .map(el => el.textContent?.trim())
+          .filter(Boolean)
+          .join(' ');
+        
+        if (textFromContainer) {
+          return textFromContainer;
+        }
+      }
+    }
+    
+    return userInput || 'User message';
+  } catch (error) {
+    console.error('[GPT Navigator] Error extracting user input:', error);
+    return 'User message';
+  }
 };
 
 // Start observing DOM

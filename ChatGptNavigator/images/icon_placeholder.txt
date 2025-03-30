@@ -1,0 +1,20 @@
+Icon SVGs are provided in this directory:
+- icon16.svg
+- icon48.svg 
+- icon128.svg
+
+For Chrome extension, you'll need to convert these to PNG files with the same names:
+- icon16.png
+- icon48.png
+- icon128.png
+
+You can use any SVG to PNG converter online or tools like Inkscape, GIMP, or ImageMagick.
+
+Example command with ImageMagick:
+```
+convert -background none icon16.svg icon16.png
+convert -background none icon48.svg icon48.png
+convert -background none icon128.svg icon128.png
+```
+
+Or, use an online converter like https://svgtopng.com/ 
