@@ -18,7 +18,7 @@ const observeDOM = () => {
   window.addEventListener('resize', adjustPanelOnResize);
 };
 
-// 存储面板宽度的变量
+// Store panel width variables
 let userPanelWidth = {
   default: 280,
   medium: 240,
@@ -26,7 +26,7 @@ let userPanelWidth = {
   current: null
 };
 
-// 根据屏幕尺寸获取默认宽度
+// Get default width based on screen size
 const getDefaultPanelWidth = () => {
   if (window.innerWidth <= 640) {
     return userPanelWidth.small;
@@ -53,7 +53,7 @@ const createNavigationPanel = () => {
   const navHeader = document.createElement('div');
   navHeader.className = 'gpt-navigator-header';
   
-  // 添加标题和书签过滤按钮
+  // Add title and bookmark filter button
   const headerContent = document.createElement('div');
   headerContent.style.display = 'flex';
   headerContent.style.justifyContent = 'space-between';
@@ -65,8 +65,8 @@ const createNavigationPanel = () => {
   
   const filterButton = document.createElement('button');
   filterButton.className = 'gpt-navigator-filter';
-  filterButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg> <span>书签</span>';
-  filterButton.title = '只显示标记的提示';
+  filterButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg> <span>Bookmarks</span>';
+  filterButton.title = 'Show only bookmarked prompts';
   filterButton.addEventListener('click', toggleBookmarkFilter);
   
   headerContent.appendChild(title);
@@ -80,12 +80,12 @@ const createNavigationPanel = () => {
   navLinks.id = 'gpt-navigator-links';
   navPanel.appendChild(navLinks);
   
-  // 添加拖动手柄
+  // Add resize handle
   const resizeHandle = document.createElement('div');
   resizeHandle.className = 'gpt-navigator-resize-handle';
   navPanel.appendChild(resizeHandle);
   
-  // 为手柄添加拖动事件
+  // Add drag event handlers for the handle
   setupResizeHandlers(resizeHandle, navPanel);
   
   // Create toggle button as a separate element
@@ -106,21 +106,21 @@ const createNavigationPanel = () => {
   // Add toggle button separately to ensure it's not affected by panel styles
   document.body.appendChild(toggleButton);
   
-  // 设置初始宽度
+  // Set initial width
   userPanelWidth.current = getDefaultPanelWidth();
   navPanel.style.width = `${userPanelWidth.current}px`;
   
   // Adjust initial position
   setTimeout(adjustPanelOnResize, 0);
   
-  // 加载保存的书签
+  // Load saved bookmarks
   loadBookmarks();
   
   // Now scan existing content
   scanExistingPrompts();
 };
 
-// 设置拖动调整大小的事件处理
+// Set up resize handlers
 const setupResizeHandlers = (handle, panel) => {
   let startX, startWidth;
   
@@ -136,21 +136,21 @@ const setupResizeHandlers = (handle, panel) => {
   };
   
   const resize = (e) => {
-    // 计算新宽度 (注意方向是从右到左)
+    // Calculate new width (note direction is right to left)
     const newWidth = startWidth - (e.clientX - startX);
     
-    // 限制最小和最大宽度
+    // Limit minimum and maximum width
     const minWidth = 180;
-    const maxWidth = window.innerWidth * 0.4; // 最大为窗口宽度的40%
+    const maxWidth = window.innerWidth * 0.4; // Maximum 40% of window width
     
     if (newWidth >= minWidth && newWidth <= maxWidth) {
       userPanelWidth.current = newWidth;
       panel.style.width = `${newWidth}px`;
       
-      // 调整toggle按钮位置
+      // Adjust toggle button position
       const toggleButton = document.getElementById('gpt-navigator-toggle');
       if (toggleButton && !panel.classList.contains('collapsed')) {
-        // 在拖动过程中禁用过渡动画
+        // Disable transition animation during drag
         toggleButton.style.transition = 'none';
         toggleButton.style.right = `${newWidth}px`;
       }
@@ -162,7 +162,7 @@ const setupResizeHandlers = (handle, panel) => {
     document.documentElement.removeEventListener('mousemove', resize);
     document.documentElement.removeEventListener('mouseup', stopResize);
     
-    // 恢复toggle按钮的过渡动画
+    // Restore toggle button transition
     const toggleButton = document.getElementById('gpt-navigator-toggle');
     if (toggleButton) {
       setTimeout(() => {
@@ -170,7 +170,7 @@ const setupResizeHandlers = (handle, panel) => {
       }, 0);
     }
     
-    // 保存用户设置的宽度
+    // Save user-set width
     localStorage.setItem('gpt-navigator-width', userPanelWidth.current);
   };
   
@@ -213,10 +213,10 @@ const scanExistingPrompts = () => {
       const userInput = extractUserInput(messageElement);
       
       if (userInput && userInput.trim()) {
-        // 检查是否是书签
+        // Check if bookmarked
         const isBookmarked = bookmarkedMessages.some(item => item.index === index);
         
-        // 如果只显示书签且当前项未标记，则跳过
+        // Skip if showing only bookmarks and current item is not bookmarked
         if (showingOnlyBookmarks && !isBookmarked) {
           return;
         }
@@ -261,11 +261,11 @@ const scanExistingPrompts = () => {
           textSpan.textContent = shortText;
         }
         
-        // 创建书签图标
+        // Create bookmark icon
         const bookmarkIcon = document.createElement('span');
         bookmarkIcon.className = 'gpt-navigator-bookmark';
         bookmarkIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>';
-        bookmarkIcon.title = isBookmarked ? '取消标记' : '标记此提示';
+        bookmarkIcon.title = isBookmarked ? 'Remove bookmark' : 'Bookmark this prompt';
         bookmarkIcon.addEventListener('click', (e) => toggleBookmark(e, index, userInput));
         
         // Add elements to the link
@@ -458,13 +458,13 @@ const adjustPanelOnResize = () => {
   
   if (!navPanel || !toggleButton) return;
   
-  // 如果用户没有设置自定义宽度，才使用响应式默认值
+  // Use responsive default values only if no custom width set
   if (!userPanelWidth.current) {
     userPanelWidth.current = getDefaultPanelWidth();
     navPanel.style.width = `${userPanelWidth.current}px`;
   }
   
-  // 尝试从本地存储中读取用户设置的宽度
+  // Try to read user-set width from local storage
   const savedWidth = localStorage.getItem('gpt-navigator-width');
   if (savedWidth && !navPanel.classList.contains('gpt-navigator-resizing')) {
     userPanelWidth.current = parseInt(savedWidth);
@@ -474,33 +474,32 @@ const adjustPanelOnResize = () => {
   // Check if panel is collapsed
   const isCollapsed = navPanel.classList.contains('collapsed');
   
-  // 移除直接设置right样式，改用CSS类控制toggle按钮位置
-  // 这样可以利用CSS transition实现动画效果
+  // Move toggle button position based on panel state
   if (!isCollapsed) {
     toggleButton.style.right = `${userPanelWidth.current}px`;
   } else {
-    // 折叠状态下的位置由CSS类控制
+    // Collapsed state position handled by CSS
     toggleButton.style.right = '0';
   }
 };
 
-// 书签相关状态
+// Bookmark related state
 let bookmarkedMessages = [];
 let showingOnlyBookmarks = false;
 
-// 从存储中加载书签数据
+// Load bookmarks from storage
 const loadBookmarks = () => {
   try {
     chrome.storage.local.get('gptNavigatorBookmarks', (data) => {
       if (data.gptNavigatorBookmarks) {
         bookmarkedMessages = JSON.parse(data.gptNavigatorBookmarks);
-        // 重新扫描以应用书签状态
+        // Rescan to apply bookmark state
         scanExistingPrompts();
       }
     });
   } catch (error) {
     console.error('[GPT Navigator] Error loading bookmarks:', error);
-    // 使用localStorage作为备用
+    // Use localStorage as fallback
     const savedBookmarks = localStorage.getItem('gptNavigatorBookmarks');
     if (savedBookmarks) {
       try {
@@ -512,18 +511,18 @@ const loadBookmarks = () => {
   }
 };
 
-// 保存书签到存储
+// Save bookmarks to storage
 const saveBookmarks = () => {
   try {
-    // 尝试使用chrome.storage API
+    // Try to use chrome.storage API
     chrome.storage.local.set({ 'gptNavigatorBookmarks': JSON.stringify(bookmarkedMessages) });
   } catch (error) {
-    // 如果chrome.storage不可用，回退到localStorage
+    // If chrome.storage is unavailable, fall back to localStorage
     localStorage.setItem('gptNavigatorBookmarks', JSON.stringify(bookmarkedMessages));
   }
 };
 
-// 切换书签过滤
+// Toggle bookmark filter
 const toggleBookmarkFilter = (e) => {
   showingOnlyBookmarks = !showingOnlyBookmarks;
   
@@ -534,33 +533,33 @@ const toggleBookmarkFilter = (e) => {
     filterButton.classList.remove('active');
   }
   
-  // 重新扫描以应用过滤器
+  // Rescan to apply filter
   scanExistingPrompts();
 };
 
-// 切换书签状态
+// Toggle bookmark state
 const toggleBookmark = (e, index, messageContent) => {
-  e.stopPropagation(); // 防止点击触发链接跳转
+  e.stopPropagation(); // Prevent click from triggering link navigation
   
   const bookmarkIndex = bookmarkedMessages.findIndex(item => item.index === index);
   const linkElement = e.currentTarget.closest('.gpt-navigator-link');
   
   if (bookmarkIndex === -1) {
-    // 添加书签
+    // Add bookmark
     bookmarkedMessages.push({ index, content: messageContent });
     linkElement.classList.add('bookmarked');
   } else {
-    // 移除书签
+    // Remove bookmark
     bookmarkedMessages.splice(bookmarkIndex, 1);
     linkElement.classList.remove('bookmarked');
     
-    // 如果当前处于"只显示书签"模式，则隐藏此项
+    // If currently in "show only bookmarks" mode, hide this item
     if (showingOnlyBookmarks) {
       linkElement.style.display = 'none';
     }
   }
   
-  // 保存到存储
+  // Save to storage
   saveBookmarks();
 };
 

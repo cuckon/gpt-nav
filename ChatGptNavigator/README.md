@@ -4,11 +4,14 @@ A Chrome extension that adds a navigation panel to ChatGPT conversations, making
 
 ## Features
 
-- Adds a collapsible navigation panel to the side of ChatGPT
+- Collapsible navigation panel to the side of ChatGPT
 - Automatically detects and lists all user prompts in the conversation
 - Click on any prompt to instantly scroll to it
 - Visual highlight effect when navigating to a prompt
 - Toggle button to hide/show the navigation panel
+- Bookmark prompts to quickly access them later
+- Filter prompts to show only bookmarked ones
+
 
 ## Installation
 
