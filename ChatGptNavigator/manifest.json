@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "ChatGPT Navigator",
+  "version": "0.1.0",
+  "description": "Navigation panel for ChatGPT that shows links to all prompts",
+  "icons": {
+    "16": "images/icon16.svg",
+    "48": "images/icon48.svg",
+    "128": "images/icon128.svg"
+  },
+  "action": {
+    "default_icon": {
+      "16": "images/icon16.svg",
+      "48": "images/icon48.svg",
+      "128": "images/icon128.svg"
+    },
+    "default_title": "ChatGPT Navigator"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://chatgpt.com/c/*"],
+      "js": ["content.js"],
+      "css": ["styles.css"]
+    }
+  ],
+  "permissions": ["storage"]
+} 

@@ -1,0 +1,172 @@
+.gpt-navigator-panel {
+  position: fixed;
+  top: 80px;
+  right: 0;
+  width: 280px;
+  height: calc(100vh - 100px);
+  background-color: #1e1e2f;
+  border-left: 1px solid #444654;
+  box-shadow: -3px 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  transition: transform 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  color: #ececf1;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Light theme support */
+html.light .gpt-navigator-panel {
+  background-color: #f7f7f8;
+  border-left: 1px solid #dadce0;
+  color: #202123;
+}
+
+.gpt-navigator-panel.collapsed {
+  transform: translateX(275px);
+}
+
+.gpt-navigator-header {
+  padding: 8px 15px;
+  border-bottom: 1px solid #444654;
+  background-color: #202123;
+}
+
+/* Light theme support */
+html.light .gpt-navigator-header {
+  background-color: #f0f0f0;
+  border-bottom: 1px solid #dadce0;
+}
+
+.gpt-navigator-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.gpt-navigator-links {
+  overflow-y: auto;
+  padding: 10px;
+  flex-grow: 1;
+}
+
+.gpt-navigator-link {
+  display: block;
+  padding: 8px 10px;
+  margin-bottom: 5px;
+  border-radius: 5px;
+  color: #ececf1;
+  text-decoration: none;
+  word-break: break-word;
+  cursor: pointer;
+  background-color: #343541;
+  transition: background-color 0.2s;
+}
+
+/* Light theme support */
+html.light .gpt-navigator-link {
+  background-color: #e6e6e9;
+  color: #202123;
+}
+
+.gpt-navigator-link:hover {
+  background-color: #444654;
+}
+
+/* Light theme support */
+html.light .gpt-navigator-link:hover {
+  background-color: #d9d9dc;
+}
+
+.gpt-navigator-toggle {
+  position: absolute;
+  left: -25px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 25px;
+  height: 40px;
+  background-color: #202123;
+  border: 1px solid #444654;
+  border-right: none;
+  color: #ececf1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px 0 0 5px;
+  font-size: 16px;
+}
+
+/* Light theme support */
+html.light .gpt-navigator-toggle {
+  background-color: #f0f0f0;
+  border: 1px solid #dadce0;
+  border-right: none;
+  color: #202123;
+}
+
+.gpt-navigator-highlight {
+  animation: highlight-pulse 2s ease-in-out;
+}
+
+@keyframes highlight-pulse {
+  0% { background-color: inherit; }
+  30% { background-color: rgba(25, 195, 125, 0.3); }
+  100% { background-color: inherit; }
+}
+
+/* Make sure the panel doesn't interfere with ChatGPT controls */
+@media (max-width: 1024px) {
+  .gpt-navigator-panel {
+    width: 240px;
+  }
+  
+  .gpt-navigator-panel.collapsed {
+    transform: translateX(235px);
+  }
+}
+
+/* Mobile support */
+@media (max-width: 640px) {
+  .gpt-navigator-panel {
+    top: 60px;
+    width: 220px;
+  }
+  
+  .gpt-navigator-panel.collapsed {
+    transform: translateX(215px);
+  }
+}
+
+/* Ensure compatibility with newer ChatGPT themes */
+body[data-theme="light"] .gpt-navigator-panel,
+html.light .gpt-navigator-panel {
+  background-color: #f7f7f8;
+  border-left: 1px solid #dadce0;
+  color: #202123;
+}
+
+body[data-theme="light"] .gpt-navigator-header,
+html.light .gpt-navigator-header {
+  background-color: #f0f0f0;
+  border-bottom: 1px solid #dadce0;
+}
+
+body[data-theme="light"] .gpt-navigator-link,
+html.light .gpt-navigator-link {
+  background-color: #e6e6e9;
+  color: #202123;
+}
+
+body[data-theme="light"] .gpt-navigator-link:hover,
+html.light .gpt-navigator-link:hover {
+  background-color: #d9d9dc;
+}
+
+body[data-theme="light"] .gpt-navigator-toggle,
+html.light .gpt-navigator-toggle {
+  background-color: #f0f0f0;
+  border: 1px solid #dadce0;
+  border-right: none;
+  color: #202123;
+} 
