@@ -278,4 +278,85 @@ html.light .gpt-navigator-toggle {
   border-radius: 8px 0 0 8px;
   box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
   z-index: 1001;
+}
+
+/* 添加书签标记按钮样式 */
+.gpt-navigator-bookmark {
+  margin-left: 8px;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  opacity: 0.4;
+  transition: opacity 0.2s, transform 0.1s;
+  cursor: pointer;
+  color: #a1a1a1;
+}
+
+.gpt-navigator-bookmark:hover {
+  opacity: 0.8;
+  transform: scale(1.1);
+}
+
+/* 已标记项目的样式 */
+.gpt-navigator-link.bookmarked {
+  border-left: 3px solid #19C37D;
+  background-color: rgba(25, 195, 125, 0.1);
+}
+
+.gpt-navigator-link.bookmarked .gpt-navigator-bookmark {
+  opacity: 1;
+  color: #19C37D;
+}
+
+/* 书签筛选按钮 */
+.gpt-navigator-filter {
+  margin-left: auto;
+  padding: 4px 8px;
+  background-color: transparent;
+  border: 1px solid #444654;
+  border-radius: 4px;
+  color: #ececf1;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.gpt-navigator-filter:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.gpt-navigator-filter.active {
+  background-color: rgba(25, 195, 125, 0.2);
+  border-color: #19C37D;
+}
+
+/* Light theme support for bookmarks */
+html.light .gpt-navigator-bookmark {
+  color: #6e6e80;
+}
+
+html.light .gpt-navigator-link.bookmarked {
+  border-left: 3px solid #19C37D;
+  background-color: rgba(25, 195, 125, 0.1);
+}
+
+html.light .gpt-navigator-link.bookmarked .gpt-navigator-bookmark {
+  color: #19C37D;
+}
+
+html.light .gpt-navigator-filter {
+  border: 1px solid #dadce0;
+  color: #202123;
+}
+
+html.light .gpt-navigator-filter:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+html.light .gpt-navigator-filter.active {
+  background-color: rgba(25, 195, 125, 0.2);
+  border-color: #19C37D;
 } 

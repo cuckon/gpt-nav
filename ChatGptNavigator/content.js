@@ -52,7 +52,26 @@ const createNavigationPanel = () => {
   // Add header to the panel
   const navHeader = document.createElement('div');
   navHeader.className = 'gpt-navigator-header';
-  navHeader.innerHTML = '<h3>Prompt Navigator</h3>';
+  
+  // 添加标题和书签过滤按钮
+  const headerContent = document.createElement('div');
+  headerContent.style.display = 'flex';
+  headerContent.style.justifyContent = 'space-between';
+  headerContent.style.alignItems = 'center';
+  headerContent.style.width = '100%';
+  
+  const title = document.createElement('h3');
+  title.textContent = 'Prompt Navigator';
+  
+  const filterButton = document.createElement('button');
+  filterButton.className = 'gpt-navigator-filter';
+  filterButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg> <span>书签</span>';
+  filterButton.title = '只显示标记的提示';
+  filterButton.addEventListener('click', toggleBookmarkFilter);
+  
+  headerContent.appendChild(title);
+  headerContent.appendChild(filterButton);
+  navHeader.appendChild(headerContent);
   navPanel.appendChild(navHeader);
   
   // Create the links container
@@ -93,6 +112,9 @@ const createNavigationPanel = () => {
   
   // Adjust initial position
   setTimeout(adjustPanelOnResize, 0);
+  
+  // 加载保存的书签
+  loadBookmarks();
   
   // Now scan existing content
   scanExistingPrompts();
@@ -191,9 +213,20 @@ const scanExistingPrompts = () => {
       const userInput = extractUserInput(messageElement);
       
       if (userInput && userInput.trim()) {
+        // 检查是否是书签
+        const isBookmarked = bookmarkedMessages.some(item => item.index === index);
+        
+        // 如果只显示书签且当前项未标记，则跳过
+        if (showingOnlyBookmarks && !isBookmarked) {
+          return;
+        }
+        
         // Create link element with styled index number
         const linkElement = document.createElement('a');
         linkElement.className = 'gpt-navigator-link';
+        if (isBookmarked) {
+          linkElement.classList.add('bookmarked');
+        }
         
         // Create number badge element
         const numberBadge = document.createElement('span');
@@ -228,10 +261,17 @@ const scanExistingPrompts = () => {
           textSpan.textContent = shortText;
         }
         
-        // Add both elements to the link
+        // 创建书签图标
+        const bookmarkIcon = document.createElement('span');
+        bookmarkIcon.className = 'gpt-navigator-bookmark';
+        bookmarkIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>';
+        bookmarkIcon.title = isBookmarked ? '取消标记' : '标记此提示';
+        bookmarkIcon.addEventListener('click', (e) => toggleBookmark(e, index, userInput));
+        
+        // Add elements to the link
         linkElement.appendChild(numberBadge);
-        linkElement.appendChild(document.createTextNode(' '));
         linkElement.appendChild(textSpan);
+        linkElement.appendChild(bookmarkIcon);
         
         linkElement.href = '#';
         linkElement.setAttribute('data-message-index', index);
@@ -442,6 +482,86 @@ const adjustPanelOnResize = () => {
     // 折叠状态下的位置由CSS类控制
     toggleButton.style.right = '0';
   }
+};
+
+// 书签相关状态
+let bookmarkedMessages = [];
+let showingOnlyBookmarks = false;
+
+// 从存储中加载书签数据
+const loadBookmarks = () => {
+  try {
+    chrome.storage.local.get('gptNavigatorBookmarks', (data) => {
+      if (data.gptNavigatorBookmarks) {
+        bookmarkedMessages = JSON.parse(data.gptNavigatorBookmarks);
+        // 重新扫描以应用书签状态
+        scanExistingPrompts();
+      }
+    });
+  } catch (error) {
+    console.error('[GPT Navigator] Error loading bookmarks:', error);
+    // 使用localStorage作为备用
+    const savedBookmarks = localStorage.getItem('gptNavigatorBookmarks');
+    if (savedBookmarks) {
+      try {
+        bookmarkedMessages = JSON.parse(savedBookmarks);
+      } catch (e) {
+        bookmarkedMessages = [];
+      }
+    }
+  }
+};
+
+// 保存书签到存储
+const saveBookmarks = () => {
+  try {
+    // 尝试使用chrome.storage API
+    chrome.storage.local.set({ 'gptNavigatorBookmarks': JSON.stringify(bookmarkedMessages) });
+  } catch (error) {
+    // 如果chrome.storage不可用，回退到localStorage
+    localStorage.setItem('gptNavigatorBookmarks', JSON.stringify(bookmarkedMessages));
+  }
+};
+
+// 切换书签过滤
+const toggleBookmarkFilter = (e) => {
+  showingOnlyBookmarks = !showingOnlyBookmarks;
+  
+  const filterButton = e.currentTarget;
+  if (showingOnlyBookmarks) {
+    filterButton.classList.add('active');
+  } else {
+    filterButton.classList.remove('active');
+  }
+  
+  // 重新扫描以应用过滤器
+  scanExistingPrompts();
+};
+
+// 切换书签状态
+const toggleBookmark = (e, index, messageContent) => {
+  e.stopPropagation(); // 防止点击触发链接跳转
+  
+  const bookmarkIndex = bookmarkedMessages.findIndex(item => item.index === index);
+  const linkElement = e.currentTarget.closest('.gpt-navigator-link');
+  
+  if (bookmarkIndex === -1) {
+    // 添加书签
+    bookmarkedMessages.push({ index, content: messageContent });
+    linkElement.classList.add('bookmarked');
+  } else {
+    // 移除书签
+    bookmarkedMessages.splice(bookmarkIndex, 1);
+    linkElement.classList.remove('bookmarked');
+    
+    // 如果当前处于"只显示书签"模式，则隐藏此项
+    if (showingOnlyBookmarks) {
+      linkElement.style.display = 'none';
+    }
+  }
+  
+  // 保存到存储
+  saveBookmarks();
 };
 
 // Start observing DOM
