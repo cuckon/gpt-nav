@@ -1,46 +1,54 @@
 # ChatGPT Navigator
 
-A Chrome extension that adds a navigation panel to ChatGPT conversations, making it easy to jump between your prompts.
+A browser extension that adds a navigation panel to ChatGPT, showing links to all your prompts in the conversation.
 
 ## Features
 
-- Collapsible navigation panel to the side of ChatGPT
-- Automatically detects and lists all user prompts in the conversation
-- Click on any prompt to instantly scroll to it
-- Visual highlight effect when navigating to a prompt
-- Toggle button to hide/show the navigation panel
-- Bookmark prompts to quickly access them later
-- Filter prompts to show only bookmarked ones
-
+- 📋 Automatically indexes all user prompts in the current ChatGPT conversation
+- 🔍 Quick navigation to any prompt with a single click
+- 📱 Responsive design that works on both desktop and mobile
+- 🌓 Supports both light and dark themes
+- 📏 Adjustable panel width via drag handle
+- 🔖 Bookmark important prompts for quick access
+- 🔄 Toggle panel visibility with a single click
 
 ## Installation
 
-### From Chrome Web Store (Coming Soon)
-- The extension will be available on the Chrome Web Store in the future.
+1. Download the latest release from the [Releases page](https://github.com/cuckon/gpt-nav/releases)
+2. Unzip the downloaded file
+3. In Chrome, go to `chrome://extensions/`
+4. Enable "Developer mode" (toggle in the top-right corner)
+5. Click "Load unpacked" and select the unzipped folder
+6. The extension is now installed and will be active on ChatGPT
 
-### Manual Installation
-1. Download or clone this repository
-2. Open Chrome and go to `chrome://extensions/`
-3. Enable "Developer mode" by toggling the switch in the top right corner
-4. Click "Load unpacked" and select the `ChatGptNavigator` folder
-5. The extension should now be installed and active
+## Development
 
-## Usage
+### Making Changes
 
-1. Go to [chat.openai.com](https://chat.openai.com/)
-2. The navigation panel will automatically appear on the right side of the page
-3. Each of your prompts will be listed in the panel
-4. Click on any prompt to quickly navigate to it
-5. Use the toggle button (« / ») to collapse or expand the panel
+1. Clone the repository
+2. Make your changes to the code
+3. Test the extension locally by loading it as an unpacked extension
 
-## How It Works
+### Creating a Release
 
-The extension scans the ChatGPT interface for user prompts and creates a navigation menu with links to each prompt. It uses a MutationObserver to detect when new prompts are added to the conversation and updates the navigation panel accordingly.
+This repository uses GitHub Actions to automatically build and release the extension when a new tag is pushed.
+
+To create a new release:
+
+1. Update the version number in `manifest.json`
+2. Commit your changes and push to the repository
+3. Create and push a new tag with the version number:
+
+```bash
+git tag v0.1.1.0
+git push origin v0.1.1.0
+```
+
+GitHub Actions will automatically:
+- Build the extension
+- Create a ZIP file
+- Create a new release with the ZIP file attached
 
 ## License
 
-MIT
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request. 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 

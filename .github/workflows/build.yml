@@ -1,0 +1,53 @@
+name: Build Extension
+
+on:
+  push:
+    tags:
+      - 'v*' # This will trigger on any tag that starts with 'v', like v0.1.1
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      
+      - name: Get version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+      
+      - name: Create build directory
+        run: mkdir -p build
+      
+      - name: Copy extension files
+        run: |
+          cp manifest.json build/
+          cp content.js build/
+          cp styles.css build/
+          cp -r images build/
+          cp LICENSE build/
+      
+      - name: Create ZIP archive
+        run: |
+          cd build
+          zip -r ../chatgpt-navigator-${{ env.VERSION }}.zip .
+      
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: chatgpt-navigator-${{ env.VERSION }}.zip
+          draft: false
+          prerelease: false
+          name: ChatGPT Navigator v${{ env.VERSION }}
+          body: |
+            ChatGPT Navigator browser extension v${{ env.VERSION }}
+            
+            This extension adds a navigation panel to ChatGPT that shows links to all prompts.
+          token: ${{ secrets.GITHUB_TOKEN }} 
