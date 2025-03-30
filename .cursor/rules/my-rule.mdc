@@ -1,0 +1,10 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Your rule content
+
+- Don't generate the build command.
+- Increase the build field of the version number in [manifest.json](mdc:ChatGptNavigator/manifest.json) on every change. For example if the current number is `0.1.5.0`, you should bump it to `0.1.5.1`.

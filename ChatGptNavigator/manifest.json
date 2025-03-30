@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ChatGPT Navigator",
-  "version": "0.1.0",
+  "version": "0.1.0.3",
   "description": "Navigation panel for ChatGPT that shows links to all prompts",
   "icons": {
     "16": "images/icon16.svg",
@@ -18,7 +18,10 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://chatgpt.com/c/*"],
+      "matches": [
+        "https://chat.openai.com/*", 
+        "https://chatgpt.com/*"
+      ],
       "js": ["content.js"],
       "css": ["styles.css"]
     }

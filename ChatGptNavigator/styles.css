@@ -51,7 +51,8 @@ html.light .gpt-navigator-header {
 }
 
 .gpt-navigator-link {
-  display: block;
+  display: flex;
+  align-items: center;
   padding: 8px 10px;
   margin-bottom: 5px;
   border-radius: 5px;
@@ -61,6 +62,48 @@ html.light .gpt-navigator-header {
   cursor: pointer;
   background-color: #343541;
   transition: background-color 0.2s;
+}
+
+/* Style for the numbered badge */
+.gpt-navigator-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background-color: #40414f;
+  color: #c5c5d2;
+  font-size: 12px;
+  font-weight: 500;
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+/* Light theme support for number badge */
+html.light .gpt-navigator-number {
+  background-color: #a9a9af;
+  color: #353740;
+}
+
+/* Style for the text part */
+.gpt-navigator-text {
+  flex-grow: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Style for code marker in the navigator */
+.gpt-navigator-text i {
+  font-style: italic;
+  opacity: 0.8;
+  color: #a1a1a1;
+}
+
+/* Light theme support for code marker */
+html.light .gpt-navigator-text i {
+  color: #6e6e80;
 }
 
 /* Light theme support */
@@ -156,6 +199,17 @@ body[data-theme="light"] .gpt-navigator-link,
 html.light .gpt-navigator-link {
   background-color: #e6e6e9;
   color: #202123;
+}
+
+body[data-theme="light"] .gpt-navigator-number,
+html.light .gpt-navigator-number {
+  background-color: #d9d9e3;
+  color: #353740;
+}
+
+body[data-theme="light"] .gpt-navigator-text i,
+html.light .gpt-navigator-text i {
+  color: #6e6e80;
 }
 
 body[data-theme="light"] .gpt-navigator-link:hover,

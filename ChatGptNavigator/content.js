@@ -93,14 +93,42 @@ const scanExistingPrompts = () => {
       
       if (userInput && userInput.trim()) {
         // Create a trimmed version for the link text
-        const shortText = userInput.length > 40 
-          ? userInput.substring(0, 37) + '...' 
-          : userInput;
+        // Handle HTML content in the input by first creating a temp element
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = userInput;
         
-        // Create link element
+        // Extract and format the text
+        const rawText = tempDiv.textContent || '';
+        const shortText = rawText.length > 60  // Increased length to show more text 
+          ? rawText.substring(0, 57) + '...' 
+          : rawText;
+        
+        // Create link element with styled index number
         const linkElement = document.createElement('a');
         linkElement.className = 'gpt-navigator-link';
-        linkElement.textContent = `${index + 1}. ${shortText}`;
+        
+        // Create number badge element
+        const numberBadge = document.createElement('span');
+        numberBadge.className = 'gpt-navigator-number';
+        numberBadge.textContent = (index + 1).toString();
+        
+        // Create text content element - using innerHTML to preserve styling
+        const textSpan = document.createElement('span');
+        textSpan.className = 'gpt-navigator-text';
+        
+        // Apply styling to code indicator if present
+        let formattedText = userInput;
+        if (formattedText.includes('<i>[..code..]</i>')) {
+          textSpan.innerHTML = formattedText;
+        } else {
+          textSpan.textContent = shortText;
+        }
+        
+        // Add both elements to the link
+        linkElement.appendChild(numberBadge);
+        linkElement.appendChild(document.createTextNode(' '));
+        linkElement.appendChild(textSpan);
+        
         linkElement.href = '#';
         linkElement.setAttribute('data-message-index', index);
         
@@ -147,10 +175,19 @@ const extractUserInput = (userElement) => {
     // This typically gets the direct user input
     const paragraphs = userElement.querySelectorAll('p');
     if (paragraphs.length > 0) {
-      userInput = Array.from(paragraphs)
-        .map(p => p.textContent?.trim())
-        .filter(Boolean)
-        .join(' ');
+      // First collect all paragraph texts
+      const allTexts = Array.from(paragraphs).map(p => p.textContent?.trim() || '');
+      const fullText = allTexts.join(' ');
+      
+      // Check if the full text contains code blocks
+      if (fullText.includes('```')) {
+        // Extract non-code parts for better context
+        const textParts = fullText.split(/```[\s\S]*?```/);
+        // Join the non-code parts and add code marker
+        userInput = textParts.filter(Boolean).join(' ') + ' <i>[..code..]</i>';
+      } else {
+        userInput = fullText;
+      }
       
       if (userInput) return userInput;
     }
@@ -158,21 +195,48 @@ const extractUserInput = (userElement) => {
     // Strategy 2: Look for code blocks which may contain user code
     const codeBlocks = userElement.querySelectorAll('pre code');
     if (codeBlocks.length > 0) {
-      const codeText = Array.from(codeBlocks)
-        .map(code => code.textContent?.trim())
-        .filter(Boolean)
-        .join('\n');
+      // Get surrounding text to provide context
+      const directText = userElement.textContent?.trim() || '';
       
-      if (codeText) {
-        // Combine with previous text if available
-        userInput = userInput ? `${userInput} ${codeText}` : codeText;
-        return userInput;
+      // Extract code blocks
+      const codeTexts = Array.from(codeBlocks).map(el => el.textContent?.trim() || '');
+      
+      // Replace each code block with marker in the text
+      let resultText = directText;
+      codeTexts.forEach(codeText => {
+        if (codeText && resultText.includes(codeText)) {
+          resultText = resultText.replace(codeText, '');
+        }
+      });
+      
+      // Clean up whitespace and add code marker
+      resultText = resultText.replace(/\s+/g, ' ').trim();
+      
+      // Add code marker in a way that it can be styled
+      if (resultText) {
+        return resultText + ' <i>[..code..]</i>';
+      } else {
+        return '<i>[..code..]</i>';
       }
     }
     
     // Strategy 3: Find the text directly in the user element
     // Useful for simple messages without formatting
-    const directText = userElement.textContent?.trim();
+    let directText = userElement.textContent?.trim() || '';
+    
+    // Check for code blocks in the direct text content
+    if (directText.includes('```')) {
+      // Extract content before, between and after code blocks
+      const textParts = directText.split(/```[\s\S]*?```/);
+      const nonCodeText = textParts.filter(Boolean).join(' ').trim();
+      
+      if (nonCodeText) {
+        return nonCodeText + ' <i>[..code..]</i>';
+      } else {
+        return '<i>[..code..]</i>';
+      }
+    }
+    
     if (directText) {
       return directText;
     }
