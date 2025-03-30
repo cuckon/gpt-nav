@@ -18,6 +18,25 @@ const observeDOM = () => {
   window.addEventListener('resize', adjustPanelOnResize);
 };
 
+// 存储面板宽度的变量
+let userPanelWidth = {
+  default: 280,
+  medium: 240,
+  small: 220,
+  current: null
+};
+
+// 根据屏幕尺寸获取默认宽度
+const getDefaultPanelWidth = () => {
+  if (window.innerWidth <= 640) {
+    return userPanelWidth.small;
+  } else if (window.innerWidth <= 1024) {
+    return userPanelWidth.medium;
+  } else {
+    return userPanelWidth.default;
+  }
+};
+
 // Create the navigation panel
 const createNavigationPanel = () => {
   // Check if panel already exists
@@ -42,6 +61,14 @@ const createNavigationPanel = () => {
   navLinks.id = 'gpt-navigator-links';
   navPanel.appendChild(navLinks);
   
+  // 添加拖动手柄
+  const resizeHandle = document.createElement('div');
+  resizeHandle.className = 'gpt-navigator-resize-handle';
+  navPanel.appendChild(resizeHandle);
+  
+  // 为手柄添加拖动事件
+  setupResizeHandlers(resizeHandle, navPanel);
+  
   // Create toggle button as a separate element
   const toggleButton = document.createElement('button');
   toggleButton.id = 'gpt-navigator-toggle';
@@ -60,11 +87,72 @@ const createNavigationPanel = () => {
   // Add toggle button separately to ensure it's not affected by panel styles
   document.body.appendChild(toggleButton);
   
+  // 设置初始宽度
+  userPanelWidth.current = getDefaultPanelWidth();
+  navPanel.style.width = `${userPanelWidth.current}px`;
+  
   // Adjust initial position
   setTimeout(adjustPanelOnResize, 0);
   
   // Now scan existing content
   scanExistingPrompts();
+};
+
+// 设置拖动调整大小的事件处理
+const setupResizeHandlers = (handle, panel) => {
+  let startX, startWidth;
+  
+  const startResize = (e) => {
+    startX = e.clientX;
+    startWidth = parseInt(document.defaultView.getComputedStyle(panel).width, 10);
+    panel.classList.add('gpt-navigator-resizing');
+    
+    document.documentElement.addEventListener('mousemove', resize);
+    document.documentElement.addEventListener('mouseup', stopResize);
+    
+    e.preventDefault();
+  };
+  
+  const resize = (e) => {
+    // 计算新宽度 (注意方向是从右到左)
+    const newWidth = startWidth - (e.clientX - startX);
+    
+    // 限制最小和最大宽度
+    const minWidth = 180;
+    const maxWidth = window.innerWidth * 0.4; // 最大为窗口宽度的40%
+    
+    if (newWidth >= minWidth && newWidth <= maxWidth) {
+      userPanelWidth.current = newWidth;
+      panel.style.width = `${newWidth}px`;
+      
+      // 调整toggle按钮位置
+      const toggleButton = document.getElementById('gpt-navigator-toggle');
+      if (toggleButton && !panel.classList.contains('collapsed')) {
+        // 在拖动过程中禁用过渡动画
+        toggleButton.style.transition = 'none';
+        toggleButton.style.right = `${newWidth}px`;
+      }
+    }
+  };
+  
+  const stopResize = () => {
+    panel.classList.remove('gpt-navigator-resizing');
+    document.documentElement.removeEventListener('mousemove', resize);
+    document.documentElement.removeEventListener('mouseup', stopResize);
+    
+    // 恢复toggle按钮的过渡动画
+    const toggleButton = document.getElementById('gpt-navigator-toggle');
+    if (toggleButton) {
+      setTimeout(() => {
+        toggleButton.style.transition = '';
+      }, 0);
+    }
+    
+    // 保存用户设置的宽度
+    localStorage.setItem('gpt-navigator-width', userPanelWidth.current);
+  };
+  
+  handle.addEventListener('mousedown', startResize);
 };
 
 // Handler for DOM changes
@@ -330,21 +418,29 @@ const adjustPanelOnResize = () => {
   
   if (!navPanel || !toggleButton) return;
   
+  // 如果用户没有设置自定义宽度，才使用响应式默认值
+  if (!userPanelWidth.current) {
+    userPanelWidth.current = getDefaultPanelWidth();
+    navPanel.style.width = `${userPanelWidth.current}px`;
+  }
+  
+  // 尝试从本地存储中读取用户设置的宽度
+  const savedWidth = localStorage.getItem('gpt-navigator-width');
+  if (savedWidth && !navPanel.classList.contains('gpt-navigator-resizing')) {
+    userPanelWidth.current = parseInt(savedWidth);
+    navPanel.style.width = `${userPanelWidth.current}px`;
+  }
+  
   // Check if panel is collapsed
   const isCollapsed = navPanel.classList.contains('collapsed');
   
-  // Update toggle button position
-  if (isCollapsed) {
-    toggleButton.style.right = '0';
+  // 移除直接设置right样式，改用CSS类控制toggle按钮位置
+  // 这样可以利用CSS transition实现动画效果
+  if (!isCollapsed) {
+    toggleButton.style.right = `${userPanelWidth.current}px`;
   } else {
-    // Adjust for different screen sizes
-    if (window.innerWidth <= 640) {
-      toggleButton.style.right = '220px';
-    } else if (window.innerWidth <= 1024) {
-      toggleButton.style.right = '240px';
-    } else {
-      toggleButton.style.right = '280px';
-    }
+    // 折叠状态下的位置由CSS类控制
+    toggleButton.style.right = '0';
   }
 };
 

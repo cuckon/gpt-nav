@@ -2,7 +2,7 @@
   position: fixed;
   top: 80px;
   right: 0;
-  width: 280px;
+  width: 280px; /* 默认宽度，将被JavaScript动态设置 */
   height: calc(100vh - 100px);
   background-color: #1e1e2f;
   border: 1px solid #444654;
@@ -25,7 +25,7 @@ html.light .gpt-navigator-panel {
 }
 
 .gpt-navigator-panel.collapsed {
-  transform: translateX(275px);
+  transform: translateX(calc(100% - 5px));
 }
 
 .gpt-navigator-header {
@@ -156,11 +156,38 @@ html.light .gpt-navigator-link:hover {
   box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
   z-index: 1001;
   outline: none;
+  transition: right 0.3s ease-in-out;
 }
 
 /* 当面板折叠时移动toggle按钮 */
 .gpt-navigator-panel.collapsed ~ .gpt-navigator-toggle {
   right: 0;
+}
+
+/* 添加拖动调整宽度的手柄 */
+.gpt-navigator-resize-handle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 8px;
+  height: 100%;
+  cursor: ew-resize;
+  z-index: 1002;
+}
+
+/* 拖动手柄的悬停效果 */
+.gpt-navigator-resize-handle:hover {
+  background-color: rgba(99, 99, 99, 0.2);
+}
+
+/* 拖动过程中的样式 */
+.gpt-navigator-resizing {
+  transition: none !important;
+  user-select: none;
+}
+
+.gpt-navigator-resizing .gpt-navigator-resize-handle {
+  background-color: rgba(99, 99, 99, 0.3);
 }
 
 /* Light theme support */
