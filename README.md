@@ -13,9 +13,15 @@ A browser extension that adds a navigation panel to ChatGPT, showing links to al
 - 📏 Adjustable panel width via drag handle
 - 🔖 Bookmark important prompts for quick access
 - 🔄 Toggle panel visibility with a single click
+- 🔄 Toggle panel display mode between float and embed
 
 ## Installation
 
+### Chrome Web Store
+
+Install directly from the [Chrome Web Store](https://chromewebstore.google.com/detail/ejiedoihhdilpbkjakdhkbibindninom)
+
+### Manual Installation
 1. Download the latest release from the [Releases page](https://github.com/cuckon/gpt-nav/releases)
 2. Unzip the downloaded file
 3. In Chrome, go to `chrome://extensions/`
