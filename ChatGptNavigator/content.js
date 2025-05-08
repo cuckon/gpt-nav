@@ -33,6 +33,9 @@ let userPanelWidth = {
   current: null
 };
 
+// Display mode state: 'float' or 'embed'
+let currentDisplayMode = 'float'; // Default to float
+
 // Get default width based on screen size
 const getDefaultPanelWidth = () => {
   if (window.innerWidth <= 640) {
@@ -89,8 +92,15 @@ const createNavigationPanel = () => {
   filterButton.title = 'Show only bookmarked prompts';
   filterButton.addEventListener('click', toggleBookmarkFilter);
   
+  const displayModeButton = document.createElement('button');
+  displayModeButton.className = 'gpt-navigator-display-mode';
+  displayModeButton.title = 'Toggle panel display mode';
+  // Icon will be set in applyDisplayMode
+  displayModeButton.addEventListener('click', toggleDisplayMode);
+  
   actionsContainer.appendChild(githubLink);
   actionsContainer.appendChild(filterButton);
+  actionsContainer.appendChild(displayModeButton);
   
   headerContent.appendChild(title);
   headerContent.appendChild(actionsContainer);
@@ -129,12 +139,23 @@ const createNavigationPanel = () => {
   // Add toggle button separately to ensure it's not affected by panel styles
   document.body.appendChild(toggleButton);
   
+  // Identify and mark the main content area for style adjustments
+  const mainElement = document.querySelector('main#main');
+  if (mainElement && mainElement.parentElement) {
+    mainElement.parentElement.classList.add('gpt-navigator-main-content-wrapper');
+  }
+  
   // Set initial width
   userPanelWidth.current = getDefaultPanelWidth();
   navPanel.style.width = `${userPanelWidth.current}px`;
   
   // Adjust initial position
   setTimeout(adjustPanelOnResize, 0);
+  
+  // Load saved display mode
+  loadDisplayMode();
+  // Apply initial display mode
+  applyDisplayMode();
   
   // Load saved bookmarks
   loadBookmarks();
@@ -504,6 +525,9 @@ const adjustPanelOnResize = () => {
     // Collapsed state position handled by CSS
     toggleButton.style.right = '0';
   }
+  
+  // Apply display mode adjustments after resize
+  applyDisplayMode();
 };
 
 // Bookmark related state
@@ -634,11 +658,91 @@ const checkForConversationChange = () => {
   }
 };
 
+// Load display mode from storage
+const loadDisplayMode = () => {
+  const savedMode = localStorage.getItem('gpt-navigator-display-mode');
+  if (savedMode === 'embed' || savedMode === 'float') {
+    currentDisplayMode = savedMode;
+  } else {
+    currentDisplayMode = 'float'; // Default to float if invalid or not set
+  }
+};
+
+// Save display mode to storage
+const saveDisplayMode = () => {
+  localStorage.setItem('gpt-navigator-display-mode', currentDisplayMode);
+};
+
+// Toggle display mode
+const toggleDisplayMode = () => {
+  currentDisplayMode = currentDisplayMode === 'float' ? 'embed' : 'float';
+  saveDisplayMode();
+  applyDisplayMode();
+  // Adjust panel on resize might be needed if panel width/content changes based on mode
+  adjustPanelOnResize();
+};
+
+// Apply display mode changes to the UI
+const applyDisplayMode = () => {
+  const navPanel = document.getElementById('gpt-navigator-panel');
+  const toggleButton = document.getElementById('gpt-navigator-toggle'); // The main toggle for showing/hiding panel
+  const displayModeButton = document.querySelector('.gpt-navigator-display-mode');
+  const mainContentArea = document.querySelector('.gpt-navigator-main-content-wrapper'); // Target the wrapper
+
+  if (!navPanel || !toggleButton || !displayModeButton) return;
+
+  if (currentDisplayMode === 'embed') {
+    navPanel.classList.add('embedded');
+    navPanel.classList.remove('floating'); // Ensure floating class is removed
+    displayModeButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg> <span>Embed</span>';
+    displayModeButton.title = "Switch to Floating Mode";
+
+    // Panel is embedded, adjust main content
+    if (mainContentArea) {
+      if (!navPanel.classList.contains('collapsed')) {
+        mainContentArea.style.marginRight = `${navPanel.offsetWidth}px`;
+      } else {
+        mainContentArea.style.marginRight = '0px';
+      }
+    }
+    // For embedded mode, the visibility toggle button might need different positioning logic
+    // if panel is collapsed, toggle button should be at the edge of the screen
+    if (navPanel.classList.contains('collapsed')) {
+        toggleButton.style.right = '0px';
+    } else {
+        // When embedded and open, the toggle button moves with the panel edge
+        toggleButton.style.right = `${userPanelWidth.current}px`;
+    }
+
+  } else { // 'float' mode
+    navPanel.classList.remove('embedded');
+    navPanel.classList.add('floating'); // Add a class for floating specific styles if needed
+    displayModeButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg> <span>Float</span>';
+    displayModeButton.title = "Switch to Embedded Mode";
+
+    // Panel is floating, main content is not affected by panel width
+    if (mainContentArea) {
+      mainContentArea.style.marginRight = '0px';
+    }
+    // Floating mode positioning for the visibility toggle
+    if (navPanel.classList.contains('collapsed')) {
+        toggleButton.style.right = '0px';
+    } else {
+        toggleButton.style.right = `${userPanelWidth.current}px`;
+    }
+  }
+  // Ensure the main visibility toggle button's text is correct
+  toggleButton.innerHTML = navPanel.classList.contains('collapsed') ? '&laquo;' : '&raquo;';
+};
+
 // Start observing DOM and listen for URL changes
 document.addEventListener('DOMContentLoaded', () => {
   observeDOM();
   // Add a popstate listener for URL changes (e.g., back/forward navigation)
   window.addEventListener('popstate', checkForConversationChange);
+  // Initial application of display mode based on saved preference or default
+  loadDisplayMode(); // Ensure mode is loaded before first apply
+  applyDisplayMode();
 });
 // The initial observeDOM() call will handle the first load.
 // If the DOM is already loaded when this script runs, observeDOM() should still be called.

@@ -56,6 +56,54 @@ html.light .gpt-navigator-header h3 {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
+/* Styles for action buttons in the header */
+.gpt-navigator-header .gpt-navigator-filter,
+.gpt-navigator-header .gpt-navigator-github,
+.gpt-navigator-header .gpt-navigator-display-mode {
+  background: none;
+  border: 1px solid #555; /* Slightly lighter border for visibility */
+  color: #ececf1;
+  padding: 4px 8px; /* Smaller padding */
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex; /* Use flex to align icon and text */
+  align-items: center;
+  gap: 6px; /* Space between icon and text */
+  font-size: 12px; /* Smaller font size */
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.gpt-navigator-header .gpt-navigator-filter:hover,
+.gpt-navigator-header .gpt-navigator-github:hover,
+.gpt-navigator-header .gpt-navigator-display-mode:hover {
+  background-color: #444654;
+  border-color: #666;
+}
+
+/* Light theme for new action buttons */
+html.light .gpt-navigator-header .gpt-navigator-filter,
+html.light .gpt-navigator-header .gpt-navigator-github,
+html.light .gpt-navigator-header .gpt-navigator-display-mode {
+  color: #202123;
+  border: 1px solid #ccc;
+}
+
+html.light .gpt-navigator-header .gpt-navigator-filter:hover,
+html.light .gpt-navigator-header .gpt-navigator-github:hover,
+html.light .gpt-navigator-header .gpt-navigator-display-mode:hover {
+  background-color: #e0e0e0;
+  border-color: #bbb;
+}
+
+/* Ensure icons in buttons are sized correctly */
+.gpt-navigator-header .gpt-navigator-filter svg,
+.gpt-navigator-header .gpt-navigator-github svg,
+.gpt-navigator-header .gpt-navigator-display-mode svg {
+  width: 14px; /* Consistent icon size */
+  height: 14px;
+  stroke-width: 2; /* Ensure stroke width is consistent */
+}
+
 .gpt-navigator-links {
   overflow-y: auto;
   padding: 10px;
@@ -385,6 +433,221 @@ html.light .gpt-navigator-github {
   color: #202123;
 }
 
-html.light .gpt-navigator-github:hover {
+/* Styles for Embedded Mode */
+.gpt-navigator-panel.embedded {
+  /* position: fixed; is already set */
+  /* top: 0; right: 0; height: 100vh; if taking full height */
+  /* For now, keep existing top/height, just remove shadow and ensure it's not above other content unnecessarily */
+  box-shadow: none;
+  border-left: 1px solid #444654; /* Add a border to distinguish from content */
+  border-right: none; /* No border on the screen edge */
+  /* z-index might be less critical or different for embedded */
+}
+
+html.light .gpt-navigator-panel.embedded {
+  border-left: 1px solid #dadce0;
+}
+
+/* When embedded and collapsed, transform is the same */
+.gpt-navigator-panel.embedded.collapsed {
+  transform: translateX(calc(100% - 5px)); /* Same as floating collapsed */
+}
+
+/* Styles for Floating Mode (explicit class) */
+.gpt-navigator-panel.floating {
+  /* Default styles are floating, but this class can be used for overrides if float-specifics are needed */
+  /* e.g., ensure shadow is present if it was removed by embedded */
+  box-shadow: -3px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+html.light .gpt-navigator-panel.floating {
+   box-shadow: -3px 0 10px rgba(0, 0, 0, 0.05); /* Consistent with light theme */
+}
+
+/* Add transition to the new main content wrapper class */
+.gpt-navigator-main-content-wrapper {
+  transition: margin-right 0.3s ease-in-out;
+}
+
+/* Ensure compatibility with newer ChatGPT themes */
+body[data-theme="light"] .gpt-navigator-panel,
+html.light .gpt-navigator-panel {
+  background-color: #f7f7f8;
+  border-left: 1px solid #dadce0;
+  color: #202123;
+}
+
+body[data-theme="light"] .gpt-navigator-header,
+html.light .gpt-navigator-header {
+  background-color: #f0f0f0;
+  border-bottom: 1px solid #dadce0;
+}
+
+body[data-theme="light"] .gpt-navigator-link,
+html.light .gpt-navigator-link {
+  background-color: #e6e6e9;
+  color: #202123;
+}
+
+body[data-theme="light"] .gpt-navigator-number,
+html.light .gpt-navigator-number {
+  background-color: #d9d9e3;
+  color: #353740;
+}
+
+body[data-theme="light"] .gpt-navigator-text i,
+html.light .gpt-navigator-text i {
+  color: #6e6e80;
+}
+
+body[data-theme="light"] .gpt-navigator-link:hover,
+html.light .gpt-navigator-link:hover {
+  background-color: #d9d9dc;
+}
+
+body[data-theme="light"] .gpt-navigator-toggle,
+html.light .gpt-navigator-toggle {
+  background-color: #f0f0f0;
+  border: 1px solid #dadce0;
+  border-right: none;
+  color: #202123;
+  border-radius: 8px 0 0 8px;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
+  z-index: 1001;
+}
+
+/* 添加书签标记按钮样式 */
+.gpt-navigator-bookmark {
+  margin-left: 8px;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  opacity: 0.4;
+  transition: opacity 0.2s, transform 0.1s;
+  cursor: pointer;
+  color: #a1a1a1;
+}
+
+.gpt-navigator-bookmark:hover {
+  opacity: 0.8;
+  transform: scale(1.1);
+}
+
+/* 已标记项目的样式 */
+.gpt-navigator-link.bookmarked {
+  border-left: 3px solid #19C37D;
+  background-color: rgba(25, 195, 125, 0.1);
+}
+
+.gpt-navigator-link.bookmarked .gpt-navigator-bookmark {
+  opacity: 1;
+  color: #19C37D;
+}
+
+/* 书签筛选按钮 */
+.gpt-navigator-filter {
+  margin-left: auto;
+  padding: 4px 8px;
+  background-color: transparent;
+  border: 1px solid #444654;
+  border-radius: 4px;
+  color: #ececf1;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.gpt-navigator-filter:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.gpt-navigator-filter.active {
+  background-color: rgba(25, 195, 125, 0.2);
+  border-color: #19C37D;
+}
+
+/* Light theme support for bookmarks */
+html.light .gpt-navigator-bookmark {
+  color: #6e6e80;
+}
+
+html.light .gpt-navigator-link.bookmarked {
+  border-left: 3px solid #19C37D;
+  background-color: rgba(25, 195, 125, 0.1);
+}
+
+html.light .gpt-navigator-link.bookmarked .gpt-navigator-bookmark {
+  color: #19C37D;
+}
+
+html.light .gpt-navigator-filter {
+  border: 1px solid #dadce0;
+  color: #202123;
+}
+
+html.light .gpt-navigator-filter:hover {
   background-color: rgba(0, 0, 0, 0.05);
+}
+
+html.light .gpt-navigator-filter.active {
+  background-color: rgba(25, 195, 125, 0.2);
+  border-color: #19C37D;
+}
+
+.gpt-navigator-github {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  color: #ececf1;
+  opacity: 0.7;
+  transition: opacity 0.2s, transform 0.1s;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 4px;
+}
+
+.gpt-navigator-github:hover {
+  opacity: 1;
+  transform: scale(1.1);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+html.light .gpt-navigator-github {
+  color: #202123;
+}
+
+/* Styles for Embedded Mode */
+.gpt-navigator-panel.embedded {
+  /* position: fixed; is already set */
+  /* top: 0; right: 0; height: 100vh; if taking full height */
+  /* For now, keep existing top/height, just remove shadow and ensure it's not above other content unnecessarily */
+  box-shadow: none;
+  border-left: 1px solid #444654; /* Add a border to distinguish from content */
+  border-right: none; /* No border on the screen edge */
+  /* z-index might be less critical or different for embedded */
+}
+
+html.light .gpt-navigator-panel.embedded {
+  border-left: 1px solid #dadce0;
+}
+
+/* When embedded and collapsed, transform is the same */
+.gpt-navigator-panel.embedded.collapsed {
+  transform: translateX(calc(100% - 5px)); /* Same as floating collapsed */
+}
+
+/* Styles for Floating Mode (explicit class) */
+.gpt-navigator-panel.floating {
+  /* Default styles are floating, but this class can be used for overrides if float-specifics are needed */
+  /* e.g., ensure shadow is present if it was removed by embedded */
+  box-shadow: -3px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+html.light .gpt-navigator-panel.floating {
+   box-shadow: -3px 0 10px rgba(0, 0, 0, 0.05); /* Consistent with light theme */
 } 
