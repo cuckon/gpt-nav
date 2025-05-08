@@ -108,10 +108,10 @@ const createNavigationPanel = () => {
   const toggleButton = document.createElement('button');
   toggleButton.id = 'gpt-navigator-toggle';
   toggleButton.className = 'gpt-navigator-toggle';
-  toggleButton.innerHTML = '&laquo;';
+  toggleButton.innerHTML = '&raquo;';
   toggleButton.addEventListener('click', () => {
     navPanel.classList.toggle('collapsed');
-    toggleButton.innerHTML = navPanel.classList.contains('collapsed') ? '&raquo;' : '&laquo;';
+    toggleButton.innerHTML = navPanel.classList.contains('collapsed') ? '&laquo;' : '&raquo;';
     // Adjust toggle button position when panel state changes
     adjustPanelOnResize();
   });
