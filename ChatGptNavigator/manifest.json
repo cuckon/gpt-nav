@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ChatGPT Navigator",
-  "version": "0.1.1.2",
+  "version": "0.1.1.3",
   "description": "Navigation panel for ChatGPT that shows links to all prompts",
   "icons": {
     "16": "images/icon16.png",

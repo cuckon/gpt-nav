@@ -10,12 +10,19 @@ const observeDOM = () => {
   // Create and inject the navigation panel once we have the chat container
   createNavigationPanel();
   
-  // Set up the observer to watch for new messages
-  const observer = new MutationObserver(handleDOMChanges);
+  // Set up the observer to watch for new messages and conversation changes
+  const observer = new MutationObserver((mutations) => {
+    handleDOMChanges(mutations);
+    checkForConversationChange(); // Check for conversation change on DOM updates
+  });
   observer.observe(chatContainer, { childList: true, subtree: true });
   
   // Add window resize handler to adjust panel layout if needed
   window.addEventListener('resize', adjustPanelOnResize);
+  
+  // Initial check for conversation ID and load bookmarks
+  currentConversationId = getConversationId();
+  loadBookmarks();
 };
 
 // Store panel width variables
@@ -503,38 +510,71 @@ const adjustPanelOnResize = () => {
 let bookmarkedMessages = [];
 let showingOnlyBookmarks = false;
 
+// Get current conversation ID from URL
+const getConversationId = () => {
+  const match = window.location.pathname.match(/\/c\/([a-zA-Z0-9-]+)/);
+  return match ? match[1] : null;
+};
+
 // Load bookmarks from storage
 const loadBookmarks = () => {
   try {
-    chrome.storage.local.get('gptNavigatorBookmarks', (data) => {
-      if (data.gptNavigatorBookmarks) {
-        bookmarkedMessages = JSON.parse(data.gptNavigatorBookmarks);
-        // Rescan to apply bookmark state
-        scanExistingPrompts();
+    const conversationId = getConversationId();
+    if (!conversationId) {
+      bookmarkedMessages = [];
+      scanExistingPrompts(); // Rescan to clear bookmarks if no ID
+      return;
+    }
+    const storageKey = `gptNavigatorBookmarks_${conversationId}`;
+    chrome.storage.local.get(storageKey, (data) => {
+      if (data[storageKey]) {
+        bookmarkedMessages = JSON.parse(data[storageKey]);
+      } else {
+        bookmarkedMessages = []; // Clear if no bookmarks for this conversation
       }
+      // Rescan to apply bookmark state, regardless of whether bookmarks were found
+      scanExistingPrompts();
     });
   } catch (error) {
     console.error('[GPT Navigator] Error loading bookmarks:', error);
     // Use localStorage as fallback
-    const savedBookmarks = localStorage.getItem('gptNavigatorBookmarks');
+    const conversationId = getConversationId();
+    if (!conversationId) {
+      bookmarkedMessages = [];
+      scanExistingPrompts();
+      return;
+    }
+    const storageKey = `gptNavigatorBookmarks_${conversationId}`;
+    const savedBookmarks = localStorage.getItem(storageKey);
     if (savedBookmarks) {
       try {
         bookmarkedMessages = JSON.parse(savedBookmarks);
       } catch (e) {
         bookmarkedMessages = [];
       }
+    } else {
+      bookmarkedMessages = [];
     }
+    scanExistingPrompts(); // Ensure UI updates with fallback data
   }
 };
 
 // Save bookmarks to storage
 const saveBookmarks = () => {
   try {
+    const conversationId = getConversationId();
+    if (!conversationId) return; // Don't save if no conversation ID
+
+    const storageKey = `gptNavigatorBookmarks_${conversationId}`;
     // Try to use chrome.storage API
-    chrome.storage.local.set({ 'gptNavigatorBookmarks': JSON.stringify(bookmarkedMessages) });
+    chrome.storage.local.set({ [storageKey]: JSON.stringify(bookmarkedMessages) });
   } catch (error) {
     // If chrome.storage is unavailable, fall back to localStorage
-    localStorage.setItem('gptNavigatorBookmarks', JSON.stringify(bookmarkedMessages));
+    const conversationId = getConversationId();
+    if (!conversationId) return;
+
+    const storageKey = `gptNavigatorBookmarks_${conversationId}`;
+    localStorage.setItem(storageKey, JSON.stringify(bookmarkedMessages));
   }
 };
 
@@ -579,7 +619,30 @@ const toggleBookmark = (e, index, messageContent) => {
   saveBookmarks();
 };
 
-// Start observing DOM
-document.addEventListener('DOMContentLoaded', observeDOM);
-// Also run immediately in case the DOM is already loaded
-observeDOM(); 
+// Variable to store the current conversation ID
+let currentConversationId = null;
+
+// Function to check for conversation changes
+const checkForConversationChange = () => {
+  const newConversationId = getConversationId();
+  if (newConversationId !== currentConversationId) {
+    console.log('[GPT Navigator] Conversation changed from', currentConversationId, 'to', newConversationId);
+    currentConversationId = newConversationId;
+    // Conversation has changed, load new bookmarks
+    // scanExistingPrompts() is called by loadBookmarks
+    loadBookmarks();
+  }
+};
+
+// Start observing DOM and listen for URL changes
+document.addEventListener('DOMContentLoaded', () => {
+  observeDOM();
+  // Add a popstate listener for URL changes (e.g., back/forward navigation)
+  window.addEventListener('popstate', checkForConversationChange);
+});
+// The initial observeDOM() call will handle the first load.
+// If the DOM is already loaded when this script runs, observeDOM() should still be called.
+// Adding a direct call here as a fallback, but DOMContentLoaded should be the primary trigger.
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  observeDOM();
+} 
